@@ -1,8 +1,7 @@
 // App que usa a biblioteca desenvolvida. 
-// Falta inserir a lógica nova no arquivo.
+// Esse código é o antigo Main.java do trabalho anterior. Falta inserir a lógica nova no codigo.
 
-
-  package br.ifes.tpa.app;
+package br.ifes.tpa.app;
 
 import br.ifes.tpa.dominio.Series;
 import br.ifes.tpa.biblioteca.IColecao;
