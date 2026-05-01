@@ -5,11 +5,11 @@ package br.ifes.tpa.app;
 
 import br.ifes.tpa.dominio.Series;
 import br.ifes.tpa.biblioteca.IColecao;
-import br.ifes.tpa.biblioteca.ListaEncadeada;
+import br.ifes.tpa.listaencadeada.ListaEncadeada;
 import br.ifes.tpa.util.MedidorTempo;
 import br.ifes.tpa.util.ResultadoMedicao;
-import br.ifes.tpa.biblioteca.ListaEncadeadaArrayList;
-import br.ifes.tpa.biblioteca.ListaEncadeadaLinkedList;
+import br.ifes.tpa.listaencadeada.ListaEncadeadaArrayList;
+import br.ifes.tpa.listaencadeada.ListaEncadeadaLinkedList;
 
 import java.util.Scanner;
 import java.io.BufferedReader;
