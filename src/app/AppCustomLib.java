@@ -3,45 +3,48 @@
 
 package br.ifes.tpa.app;
 
-import br.ifes.tpa.dominio.Series;
+import br.ifes.tpa.biblioteca.ArvoreBinaria;       // Importa a árvore binária
 import br.ifes.tpa.biblioteca.IColecao;
-import br.ifes.tpa.listaencadeada.ListaEncadeada;
+import br.ifes.tpa.dominio.ComparatorSeriesPorNome; // Importa o Comparator
+import br.ifes.tpa.dominio.Series;
 import br.ifes.tpa.util.MedidorTempo;
 import br.ifes.tpa.util.ResultadoMedicao;
-import br.ifes.tpa.listaencadeada.ListaEncadeadaArrayList;
-import br.ifes.tpa.listaencadeada.ListaEncadeadaLinkedList;
 
-import java.util.Scanner;
 import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
+import java.util.Scanner;
 
-public class Main {
 
-    public static void carregarDados(IColecao<Series> l) { //Carrega o arquivo de texto
+/**
+ * Aplicativo principal que gerencia uma coleção de Séries usando
+ * uma Árvore Binária de Busca (BST) como estrutura de dados.
+ **/
+public class AppCustomLib {
+
+    // Carregamento de dados do arquivo
+
+    public static void carregarDados(IColecao<Series> colecao) {
         try {
-            ResultadoMedicao<Integer> resultado = MedidorTempo.medirComRetorno(() -> { //Ao identificar o arquivo, já é iniciado o cálculo do tempo
+            ResultadoMedicao<Integer> resultado = MedidorTempo.medirComRetorno(() -> {
                 int quantidade = 0;
 
-                try (BufferedReader buff = new BufferedReader(new FileReader("series_100k.txt"))) { //Localização do arquivo
+                try (BufferedReader buff = new BufferedReader(new FileReader("series_100k.txt"))) {
                     System.out.println("Carregando dados do arquivo...");
                     String linha;
 
-                    while ((linha = buff.readLine()) != null) { //Enquanto a linha não estiver vazia
-                        if (linha.trim().isEmpty()) { //remove os espaços vazios da lista
-                            continue;
-                        }
+                    while ((linha = buff.readLine()) != null) {
+                        if (linha.trim().isEmpty()) continue;
 
-                        String[] partes = linha.split(";"); //Divide a linha a cada ";" encontrada
+                        String[] partes = linha.split(";");
 
-                        if (partes.length == 3) { //se forem encontradas 3 partes separadas por ";" na linha
+                        if (partes.length == 3) {
                             String nome = partes[0];
-                            int ano = Integer.parseInt(partes[1]);
+                            int ano    = Integer.parseInt(partes[1]);
                             String pais = partes[2];
 
-                            Series s = new Series(nome, ano, pais);
-                            l.adicionar(s);
+                            colecao.adicionar(new Series(nome, ano, pais));
                             quantidade++;
                         }
                     }
@@ -55,22 +58,28 @@ public class Main {
 
             System.out.println("Dados carregados com sucesso.");
             System.out.println("Quantidade de séries carregadas: " + resultado.getResultado());
-            MedidorTempo.imprimirTempo("Tempo de leitura do arquivo e inserção na lista", resultado.getTempoNano());
+            MedidorTempo.imprimirTempo("Tempo de leitura e inserção na árvore", resultado.getTempoNano());
 
         } catch (RuntimeException e) {
             if (e.getCause() instanceof FileNotFoundException) {
-                System.out.println("Arquivo 'dados.txt' não encontrado. Iniciando com lista vazia.\n");
+                System.out.println("Arquivo 'series_100k.txt' não encontrado. Iniciando com árvore vazia.\n");
             } else {
                 System.out.println("Erro ao ler o arquivo: " + e.getCause().getMessage());
             }
         }
     }
 
-    //Início do Menu
+    // Menu principal
 
     public static void main(String[] args) {
-        IColecao<Series> l = new ListaEncadeada<Series>();
-        carregarDados(l);
+
+
+        // ArvoreBinariaBase implementa IColecao, e ArvoreBinaria estende ArvoreBinariaBase.
+
+
+        ArvoreBinaria<Series> colecao = new ArvoreBinaria<>(new ComparatorSeriesPorNome());
+
+        carregarDados(colecao);
 
         int ano, resp;
         String nome, pais;
@@ -78,28 +87,31 @@ public class Main {
 
         try {
             do {
-                String msg = "**********************\n" +
-                        "Escolha uma opção:\n" +
-                        "1) Adicionar uma Série\n" +
-                        "2) Remover uma Série\n" +
-                        "3) Pesquisar uma Série\n" +
-                        "4) Listar Séries\n" +
-                        "5) Quantidade de nós\n" +
-                        "0) Sair\n";
+                String menu =
+                        "**********************\n" +
+                                "Escolha uma opção:\n"     +
+                                "1) Adicionar uma Série\n" +
+                                "2) Remover uma Série\n"   +
+                                "3) Pesquisar uma Série\n" +
+                                "4) Listar Séries (em ordem)\n" +
+                                "5) Quantidade de nós\n"   +
+                                "6) Altura da árvore\n"    +
+                                "7) Caminhamento em Nível\n" +
+                                "0) Sair\n";
 
-                System.out.println(msg);
+                System.out.println(menu);
                 System.out.print("Sua opção: ");
                 resp = scanner.nextInt();
                 scanner.nextLine();
 
-                if (resp < 0 || resp > 5) {
-                    System.out.println("Opção inválida.");
-                    System.out.println("Tente novamente.\n");
+                if (resp < 0 || resp > 7) {
+                    System.out.println("Opção inválida. Tente novamente.\n");
                     continue;
                 }
 
                 switch (resp) {
-                    case 1: //Adicionando a Série
+
+                    case 1: // Adicionar
                         System.out.println("Digite o nome da Série:");
                         nome = scanner.nextLine();
 
@@ -111,64 +123,79 @@ public class Main {
                         pais = scanner.nextLine();
 
                         Series novaSerie = new Series(nome, ano, pais);
-
-                        long tempoAdicionar = MedidorTempo.medir(() -> l.adicionar(novaSerie)); //Tempo de adição (Apesar de sempre funcionar, seu foco é durante o uso do arquivo)
+                        long tempoAdicionar = MedidorTempo.medir(() -> colecao.adicionar(novaSerie));
 
                         System.out.println("Série adicionada com sucesso.");
                         MedidorTempo.imprimirTempo("Tempo de inserção", tempoAdicionar);
                         break;
 
-                    case 2: //Removendo uma série
+                    case 2: // Remover
                         System.out.println("Digite o nome da Série a ser removida:");
                         nome = scanner.nextLine();
 
+                        // Chave de busca: apenas o nome precisa estar preenchido, pois o Comparator só usa getNome().
                         Series chaveRemocao = new Series(nome, 0, "");
 
-                        ResultadoMedicao<Boolean> resultadoRemocao = MedidorTempo.medirComRetorno(() -> l.remover(chaveRemocao)); //Tempo de remoção
+                        ResultadoMedicao<Boolean> resultadoRemocao =
+                                MedidorTempo.medirComRetorno(() -> colecao.remover(chaveRemocao));
 
-                        if (resultadoRemocao.getResultado()) {
-                            System.out.println("Série removida com sucesso.");
-                        } else {
-                            System.out.println("Série não existe.");
-                        }
-
+                        System.out.println(resultadoRemocao.getResultado()
+                                ? "Série removida com sucesso."
+                                : "Série não encontrada na árvore.");
                         MedidorTempo.imprimirTempo("Tempo de remoção", resultadoRemocao.getTempoNano());
                         break;
 
-                    case 3: //Buscando uma Série
+                    case 3: // Pesquisar
                         System.out.println("Digite o nome da Série a ser procurada:");
                         nome = scanner.nextLine();
 
+                        // Mesma lógica da chave parcial usada no remover.
                         Series chavePesquisa = new Series(nome, 0, "");
 
-                        ResultadoMedicao<Series> resultadoPesquisa = MedidorTempo.medirComRetorno(() -> l.pesquisar(chavePesquisa)); //Executa o código para medir o tempo de Busca
+                        ResultadoMedicao<Series> resultadoPesquisa =
+                                MedidorTempo.medirComRetorno(() -> colecao.pesquisar(chavePesquisa));
 
-                        Series serieEncontrada = resultadoPesquisa.getResultado();
-
-                        if (serieEncontrada == null) {
-                            System.out.println("Série não existe.");
-                        } else {
-                            System.out.println("Série encontrada: " + serieEncontrada);
-                        }
-
+                        Series encontrada = resultadoPesquisa.getResultado();
+                        System.out.println(encontrada == null
+                                ? "Série não encontrada na árvore."
+                                : "Série encontrada: " + encontrada);
                         MedidorTempo.imprimirTempo("Tempo de pesquisa", resultadoPesquisa.getTempoNano());
                         break;
 
-                    case 4:
-                        System.out.println("Lista de Séries:");
-                        System.out.println(l.toString());
+                    case 4: // Listar em ordem
+                        System.out.println("Séries em ordem alfabética:");
+                        // toString() chama caminharEmOrdem() — definido em ArvoreBinariaBase
+                        System.out.println(colecao);
                         System.out.println();
                         break;
 
-                    case 5:
-                        ResultadoMedicao<Integer> resultadoQuantidade = MedidorTempo.medirComRetorno(() -> l.quantidadeNos()); //Executa o código para imprimir a quantidade de nós e o tempo corrido
+                    case 5: // Quantidade de nós
+                        ResultadoMedicao<Integer> resultadoQtd =
+                                MedidorTempo.medirComRetorno(colecao::quantidadeNos);
 
-                        System.out.println("Quantidade de nós: " + resultadoQuantidade.getResultado());
-                        MedidorTempo.imprimirTempo("Tempo do método quantidadeNos", resultadoQuantidade.getTempoNano());
+                        System.out.println("Quantidade de nós: " + resultadoQtd.getResultado());
+                        MedidorTempo.imprimirTempo("Tempo de quantidadeNos", resultadoQtd.getTempoNano());
+                        break;
+
+                    case 6: // Altura da árvore
+                        ResultadoMedicao<Integer> resultadoAltura =
+                                MedidorTempo.medirComRetorno(colecao::altura);
+
+                        System.out.println("Altura da árvore: " + resultadoAltura.getResultado());
+                        MedidorTempo.imprimirTempo("Tempo de altura", resultadoAltura.getTempoNano());
+                        break;
+
+                    case 7: // Caminhamento em nível
+                        ResultadoMedicao<String> resultadoNivel =
+                                MedidorTempo.medirComRetorno(colecao::caminharEmNivel);
+
+                        System.out.println("Caminhamento em nível:");
+                        System.out.println(resultadoNivel.getResultado());
+                        MedidorTempo.imprimirTempo("Tempo de caminharEmNivel", resultadoNivel.getTempoNano());
                         break;
 
                     case 0:
-                        System.out.println("Saindo do programa..."); //
+                        System.out.println("Saindo do programa...");
                         break;
                 }
 
