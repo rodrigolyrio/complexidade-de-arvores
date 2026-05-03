@@ -4,45 +4,68 @@ import java.util.Comparator;
 
 public class ArvoreAVL<T> extends ArvoreBinaria<T> {
 
-    public ArvoreAVL(Comparator<T> comparador) { // construtor da classe
-        super(comparador);
+
+    /**
+    ArvoreAVL: Construtor.
+    **/
+    public ArvoreAVL(Comparator<T> comparador) { 
+        super(comparador); // Define qual elemento é maior ou menor, identificando onde o elemento deve ser inserido na árvore
     }
 
+    /**
+    getAltura: Identifica a altura do nó.
+    **/ 
     private int getAltura(NoArvore<T> no) {
-        if (no == null) {
-            return -1;
+        if (no == null) { // Verifica se o nó existe
+            return -1; 
         } else {
             return no.altura;
         }
     }
 
+    /**
+    getFatorialBalanceamento: Verifica a necessidade de se balancear a árvore
+    **/
     private int getFatorBalanceamento(NoArvore<T> no) {
-        if (no == null) {
-            return 0;
+        if (no == null) { // Não há desequilibrio, pois não existe nó.
+            return 0; 
         } else {
-            return getAltura(no.esquerda) - getAltura(no.direita);
+            return getAltura(no.esquerda) - getAltura(no.direita); // Se retornar 0, está em equilibrio.
         }
     }
 
+    /**
+    atualizarAltura: Identifica a altura do maior nó filho e incremente +1, atualizando a altura do próprio nó.
+    **/
     private void atualizarAltura(NoArvore<T> no) {
         int alturaEsquerda = getAltura(no.esquerda);
         int alturaDireita = getAltura(no.direita);
-        no.altura = 1 + Math.max(alturaEsquerda, alturaDireita);
+        no.altura = 1 + Math.max(alturaEsquerda, alturaDireita); 
     }
 
-    private NoArvore<T> rotacaoDireita(NoArvore<T> y) {
-        NoArvore<T> x = y.esquerda;
-        NoArvore<T> T2 = x.direita;
 
-        x.direita = y;
-        y.esquerda = T2;
+    /**
+    rotacaoDireita: Redistribui o peso quando o lado esquerdo da árvore fica mais pesado.
+    **/
+    private NoArvore<T> rotacaoDireita(NoArvore<T> y) {
+        NoArvore<T> x = y.esquerda; // x é nó filho esquerdo de y.
+        NoArvore<T> T2 = x.direita; // T2 é nó filho direito de x.
+
+        // ROTACIONA PARA A DIREITA...
+        x.direita = y; 
+        y.esquerda = T2; 
+        // Ao realizar essa rotação, x se torna nó pai do nó y e do nó T2.
 
         atualizarAltura(y);
         atualizarAltura(x);
 
-        return x;
+        return x; // Retorna a nova raiz (ou o novo nó pai)
     }
 
+
+    /**
+    rotacaoEsquerda: Utiliza a mesma lógica do método acima, porém move-se para a esquerda.
+    **/
     private NoArvore<T> rotacaoEsquerda(NoArvore<T> x) {
         NoArvore<T> y = x.direita;
         NoArvore<T> T2 = y.esquerda;
@@ -56,6 +79,10 @@ public class ArvoreAVL<T> extends ArvoreBinaria<T> {
         return y;
     }
 
+    /**
+    adicionar: 
+    **/
+    
     public void adicionar(T novoValor) {
         int[] inserido = {0};
         this.raiz = adicionarRecursivo(this.raiz, novoValor, inserido);
